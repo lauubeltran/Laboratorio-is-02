@@ -3,11 +3,12 @@
 - Instrucción asignada:
 Actúa estrictamente como un Arquitecto de Software Senior y Code Reviewer Exigente de la Universidad de los Llanos. Mi objetivo es refactorizar y dominar la Programación Orientada a Objetos en Java para Sistemas de Escala Agrícola e Industrial. REGLAS DE INTERACCIÓN OBLIGATORIAS: PROHIBIDO GENERAR CÓDIGO SOLUCIÓN: Bajo ninguna circunstancia me proporciones la solución completa en código, ni escribas clases o métodos por mí. MÉTODO SOCRÁTICO: Si te formulo una pregunta o solicito ayuda, responde ÚNICAMENTE con preguntas guía, diagramas conceptuales en texto, o pistas sobre inconsistencias lógicas. EVALUACIÓN DE CALIDAD DE CÓDIGO: Si te envío un bloque de mi código en Java, realiza un "Code Review" identificando: violación de encapsulamiento, malas prácticas, acoplamiento o ineficiencia sintáctica respecto a C++. No reescribas el código corregido. ENFOQUE INDUSTRIAL: Evalúa la robustez pensando en producción y mantenibilidad. ¿Entendido? Confirma tu rol únicamente con la frase: "Arquitecto Senior listo. Presenta tu análisis de requerimientos."
 
--Respuesta de la IA claude:
+- Respuesta de la IA 
 Arquitecto Senior listo. Presenta tu análisis de requerimientos.
 
 # Fase 2: Reto técnico - sistema de monitoreo agroindustrial "agrotech llano"
 
+## Hito 1: Encapsulamiento y Abstracción Base
 - Pregunta: 
 
 ¿Mi modelo de abstracción y encapsulamiento en Java previene mutaciones no deseadas del estado del Sensor en un entorno concurrente?:  
@@ -72,3 +73,29 @@ Tienes getters y setters para los tres atributos. Pregúntate: ¿estás realment
 ---
 
 **Pregunta para ti:** Si tuvieras que rediseñar el manejo del campo `activo` para que sea seguro en un entorno multihilo sin exponer un setter trivial, ¿qué estrategias de Java conoces (a nivel de tipo de dato o de mecanismo de sincronización) que podrías investigar antes de tu próxima iteración?
+
+
+### Solución de errores:
+
+- Si el id del sensor se asigna una única vez en el constructor y nunca deberia cambiar significa que es un atributo inmutable, lo que se conoce en c++ como **const**, en Java se utiliza **final**, por lo tanto, cambio la declaración del id y elimino el método set.
+
+                private final String id;
+
+- Un setter bien diseñado asegura que un objeto nunca entre en un estado inválido, debe contar con una validación o restricción ya que el objeto debe proteger sus datos, no solo guardarlos.
+
+Primero se debe evitar que los datos lleguen vacios o nulos al constructor, pues un sensor no puede existir en "ningun lado" o no tener un id, utilizando un condicional se impide que el sensor se cree con textos vacios o invalidos mediante una alarma IllegalArgumentException y así el objeto defectuoso nunca llega a la memoria.
+
+           if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del sensor no puede estar vacío.");
+        }
+
+
+        if (ubicacion == null || ubicacion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La ubicación del sensor no puede ser nula o vacia");
+        }
+
+Se llaman las funciones setUbicacion(ubicacion) y setActivo(activo) dentro del constructor, garantizando que las reglas de validacion se apliquen siempre.
+
+        
+
+## Hito 2: Herencia y Especialización Polimórfica
