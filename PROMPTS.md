@@ -5,6 +5,7 @@ Actúa estrictamente como un Arquitecto de Software Senior y Code Reviewer Exige
 
 - Respuesta de la IA 
 Arquitecto Senior listo. Presenta tu análisis de requerimientos.
+https://claude.ai/share/3fd33515-5baa-4f53-9edf-54fd882bafee
 
 # Fase 2: Reto técnico - sistema de monitoreo agroindustrial "agrotech llano"
 
@@ -75,7 +76,7 @@ Tienes getters y setters para los tres atributos. Pregúntate: ¿estás realment
 **Pregunta para ti:** Si tuvieras que rediseñar el manejo del campo `activo` para que sea seguro en un entorno multihilo sin exponer un setter trivial, ¿qué estrategias de Java conoces (a nivel de tipo de dato o de mecanismo de sincronización) que podrías investigar antes de tu próxima iteración?
 
 
-### Solución de errores:
+### Solución de errores (estudiante):
 
 - Si el id del sensor se asigna una única vez en el constructor y nunca deberia cambiar significa que es un atributo inmutable, lo que se conoce en c++ como **const**, en Java se utiliza **final**, por lo tanto, cambio la declaración del id y elimino el método set.
 
@@ -95,7 +96,6 @@ Primero se debe evitar que los datos lleguen vacios o nulos al constructor, pues
         }
 
 public abstract class Sensor {
-
     private final String id;
     private String ubicacion;
     private boolean activo;
@@ -111,33 +111,29 @@ public abstract class Sensor {
         this.ubicacion = ubicacion;
         this.activo = activo;
     }
-
     public String getId(){return id;}
     public String getUbicacion(){return ubicacion;}
     public boolean isActivo(){return activo;}
-
-  public void setUbicacion(String ubicacion){
+    public void setUbicacion(String ubicacion){
         if (ubicacion == null || ubicacion.trim().isEmpty()) {
             throw new IllegalArgumentException("La ubicación del sensor no puede ser nula o vacia");
         }
         this.ubicacion = ubicacion;
     }
-    public void setActivo(boolean activo){
-        
+    public void setActivo(boolean activo){   
         if (!activo) {
             
             System.out.println("AVISO: Desactivando el sensor de seguridad " + this.id);
         }
         this.activo = activo;
     }
-
-
-
     public abstract double tomarLectura();
     public abstract String evaluarEstado();
-
 }
 
+- Defino el método abstracto public abstract double tomarLectura().
+            
+            public abstract double tomarLectura();
 
         
 
