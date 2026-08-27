@@ -5,6 +5,7 @@ Actúa estrictamente como un Arquitecto de Software Senior y Code Reviewer Exige
 
 - Respuesta de la IA 
 Arquitecto Senior listo. Presenta tu análisis de requerimientos.
+https://claude.ai/share/
 https://claude.ai/share/3fd33515-5baa-4f53-9edf-54fd882bafee
 
 # Fase 2: Reto técnico - sistema de monitoreo agroindustrial "agrotech llano"
@@ -138,3 +139,33 @@ public abstract class Sensor {
         
 
 ## Hito 2: Herencia y Especialización Polimórfica
+
+"¿Cómo gestiona Java el despacho dinámico de métodos (Polimorfismo) internamente a diferencia de las tablas virtuales
+(vtable) de C++ y qué riesgos de memoria desaparecen con el Garbage Collector?
+
+- Respuesta: 
+Buena pregunta de consolidación — pero antes de que yo te dé pistas, invierte el ejercicio: **esta es una pregunta que tú deberías estar formulando a tu propio proceso de investigación, no a mí como respuesta directa**, ya que las reglas que definiste prohíben que yo actúe como fuente de la solución completa. Lo que puedo hacer es guiarte con preguntas que te lleven a construir la respuesta con tus propias fuentes (JLS, JVM Specification, libros como *Effective Java* o *Java Concurrency in Practice*).
+
+**Descompongamos tu pregunta en tres sub-preguntas de investigación:**
+
+**1. Despacho dinámico en Java — ¿qué mecanismo interno usa?**
+- Investiga el concepto de **`vtable`-like structure** en la JVM, pero con un nombre distinto: busca "Java method table" o "itable" (interface table) en la especificación de la JVM.
+- Pregúntate: en C++, el `vtable` se genera **por clase** y se resuelve mediante un puntero oculto en cada objeto (`vptr`). ¿Java usa una estructura equivalente por objeto, o la resolución ocurre en otro nivel (piensa en la estructura de metadatos de la clase, no del objeto individual)?
+- Busca el término **"invokevirtual"** — es una instrucción del bytecode de la JVM. ¿Qué hace exactamente esta instrucción cuando se ejecuta? ¿En qué momento (compilación vs. ejecución) se resuelve a qué implementación concreta del método apunta?
+
+**2. La diferencia clave con C++ — el modificador `virtual`**
+- En C++, un método **no** participa en despacho dinámico a menos que lo marques explícitamente `virtual`. ¿Qué pasa si no lo marcas y una subclase lo sobrescribe — qué tipo de despacho ocurre entonces (pista: resuelto en tiempo de compilación según el tipo de la referencia, no el tipo real del objeto)? Investiga el término **"object slicing"** y el problema de "sobrescritura silenciosa" que ocurre en C++ cuando olvidas `virtual`.
+- En Java, ¿cuál es el comportamiento **por defecto** de todo método de instancia no-`static`, no-`private`, no-`final`? Conecta esto con algo que ya vimos: ¿por qué en la Ronda 2 te pregunté si deberías marcar tus setters como `final` para el problema del constructor? ¿Ahora entiendes la relación entre "todo es virtual por defecto en Java" y por qué ese antipatrón es peligroso específicamente en este lenguaje (mientras que en C++ ese mismo código sería inofensivo si el método no fuera `virtual`)?
+
+**3. Garbage Collector — ¿qué categoría de riesgos de memoria elimina, y cuáles NO?**
+- Investiga estos tres problemas clásicos de gestión manual de memoria en C++ y verifica cuáles desaparecen (o se mitigan) con el GC de Java, y cuáles **siguen existiendo** aunque tengas GC:
+  - **Dangling pointers** (punteros a memoria ya liberada)
+  - **Double free** (liberar el mismo bloque de memoria dos veces)
+  - **Memory leaks** (¿el GC elimina completamente este riesgo, o solo cambia su causa? Piensa: ¿puede un objeto en Java "filtrarse" en memoria aunque exista el GC, por ejemplo si queda referenciado desde una colección estática que nunca se limpia?)
+- Pregúntate: ¿el GC te protege contra **todos** los errores relacionados con memoria, o específicamente contra la clase de errores relacionados con la **liberación manual**? ¿Qué sigue siendo responsabilidad tuya como programador incluso con GC activo?
+
+---
+
+**Ejercicio de consolidación real:** ya que formulaste la pregunta, ahora repite el proceso pero para ti mismo — investiga cada uno de estos seis conceptos (`invokevirtual`, `itable`, `vtable`, `object slicing`, `dangling pointer`, `memory leak en Java`) y redacta **tú** un párrafo de contraste C++ vs. Java para cada uno de los dos ejes (despacho dinámico y gestión de memoria). Tráeme ese análisis escrito por ti, y yo lo someteré a revisión — señalando imprecisiones conceptuales, no completándolo por ti.
+
+## Hito 3: Procesamiento Polimórfico en Colecciones (30 min)
