@@ -169,3 +169,45 @@ Buena pregunta de consolidación — pero antes de que yo te dé pistas, inviert
 **Ejercicio de consolidación real:** ya que formulaste la pregunta, ahora repite el proceso pero para ti mismo — investiga cada uno de estos seis conceptos (`invokevirtual`, `itable`, `vtable`, `object slicing`, `dangling pointer`, `memory leak en Java`) y redacta **tú** un párrafo de contraste C++ vs. Java para cada uno de los dos ejes (despacho dinámico y gestión de memoria). Tráeme ese análisis escrito por ti, y yo lo someteré a revisión — señalando imprecisiones conceptuales, no completándolo por ti.
 
 ## Hito 3: Procesamiento Polimórfico en Colecciones (30 min)
+
+**Code Review — Hito 3: `EstacionMonitoreo`**
+
+**1. Encapsulamiento — ¿aprendiste algo de las rondas anteriores?**
+```java
+List<Sensor> sensores;
+```
+- Este campo no tiene modificador de acceso explícito. ¿Qué nivel de visibilidad asume Java por defecto cuando no escribes `public`, `private` ni `protected`? Investiga el término **"package-private"** (o *default access*) — ¿qué tan amplio es el acceso que estás otorgando sin darte cuenta, comparado con lo que discutimos sobre proteger el estado interno en `Sensor`?
+- No hay getter, no hay setter, no hay ningún método para **agregar** un sensor a la lista. Pregúntate: ¿cómo pretendes poblar esta lista desde fuera de la clase? ¿Ya identificas la inconsistencia con todo el trabajo de encapsulamiento que hicimos en `Sensor`?
+
+**2. ¿Este código compila y corre sin explotar?**
+- El campo `sensores` nunca se inicializa (`= new ArrayList<>()` o similar) ni se recibe por constructor. ¿Qué valor tiene por defecto una referencia a un objeto en Java cuando no la inicializas explícitamente?
+- Ahora sigue la ejecución de `procesarLecturas()`: el `for-each` intenta iterar sobre `sensores`. Si `sensores` tiene ese valor por defecto que acabas de identificar, ¿qué excepción específica de Java se lanza al intentar iterar sobre esa referencia? Investígala si no la recuerdas de memoria — es una de las más comunes en Java.
+
+**3. Convención de nombres — revisa tu propia variable**
+```java
+double Lectura = sensor.tomarLectura();
+```
+¿Qué convención de nomenclatura usa Java para variables locales (camelCase vs PascalCase)? ¿En qué se diferencia esto de lo que Java reserva típicamente para nombres de **clases**? Este no es solo un tema estético — herramientas de análisis estático y linters marcarían esto como advertencia en cualquier pipeline de CI/CD industrial.
+
+**4. Responsabilidad única (Single Responsibility Principle) — piensa en escala**
+- `procesarLecturas()` está haciendo dos cosas a la vez: **procesar/recolectar datos** de los sensores, y **formatear/imprimir** ese resultado por consola.
+- Pregúntate: si mañana este sistema necesita enviar esas lecturas a una base de datos, a un dashboard web, o a un sistema de alertas en lugar de (o además de) la consola, ¿cuánto de este método tendrías que reescribir? ¿Qué principio de diseño (ya lo mencionamos indirectamente con el `System.out.println` de `Sensor`) te permitiría separar "obtener los datos" de "qué se hace con ellos"?
+
+**5. Manejo de sensores inactivos — revisa tu propio modelo de dominio**
+Recuerda que `Sensor` tiene un campo `activo`. En tu bucle actual, ¿estás verificando ese estado antes de llamar a `tomarLectura()`? Pregúntate: ¿tiene sentido de negocio tomar una lectura de un sensor que está marcado como inactivo/desactivado? ¿Qué pasaría en un sistema agrícola real si un sensor de humedad fue desactivado por mantenimiento y tu `EstacionMonitoreo` sigue reportando lecturas suyas como si nada?
+
+**6. Conecta esto con la teoría que investigaste en tu mensaje anterior**
+Esta es la parte más importante para tu consolidación conceptual: fíjate en esta línea:
+```java
+double Lectura = sensor.tomarLectura();
+```
+`sensor` es de tipo declarado `Sensor` (la clase abstracta), pero en tiempo de ejecución puede ser una instancia real de `SensorHumedadSuelo` o `SensorTemperatura`. **Pregunta de verificación de tu aprendizaje:** ¿qué mecanismo de los que investigaste (`invokevirtual`) es el que decide, en este preciso punto de la ejecución, cuál implementación concreta de `tomarLectura()` se invoca? ¿Ves ahora un ejemplo *real y funcional* de polimorfismo en tu propio código, no solo en la teoría?
+
+---
+
+**Antes de tu próximo envío:**
+1. Corrige la inicialización y el acceso a `sensores` (con justificación de qué modificador elegiste y por qué).
+2. Decide cómo vas a permitir agregar sensores a la estación (¿constructor? ¿método `agregarSensor()`? ¿qué validación necesitaría ese método, aplicando lo que ya sabes de proteger invariantes?).
+3. Filtra por sensores activos antes de procesar.
+4. Corrige la convención de nombres.
+5. Piensa (no necesitas resolverlo aún) en cómo separarías "recolectar datos" de "mostrar datos" — tráeme tu razonamiento en tu próximo mensaje, aunque sea conceptual antes de tocar código.
